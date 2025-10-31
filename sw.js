@@ -1,10 +1,10 @@
 
-const CACHE_NAME = 'hcss-hub-cache-v4';
+const CACHE_NAME = 'hcss-hub-cache-v5';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon.svg'
+  './',
+  './index.html',
+  './manifest.json',
+  './icon.svg'
 ];
 
 self.addEventListener('install', event => {
