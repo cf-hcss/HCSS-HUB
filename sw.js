@@ -1,8 +1,9 @@
 
-const CACHE_NAME = 'hcss-hub-cache-v5';
+const CACHE_NAME = 'hcss-hub-cache-v7';
 const urlsToCache = [
   './',
   './index.html',
+  './index.tsx',
   './manifest.json',
   './icon.svg'
 ];
@@ -18,43 +19,35 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // For alerts.json, always fetch from network to ensure freshness
-  if (event.request.url.includes('alerts.json')) {
-    event.respondWith(fetch(event.request, { cache: 'no-store' }));
+  const requestUrl = new URL(event.request.url);
+
+  // Use a network-first strategy for alerts.json.
+  // This ensures the data is always fresh if the user is online.
+  if (requestUrl.pathname.endsWith('/alerts.json')) {
+    event.respondWith(
+      fetch(event.request).then(networkResponse => {
+        // If the fetch is successful, update the cache with the new version.
+        return caches.open(CACHE_NAME).then(cache => {
+          if (networkResponse.ok) {
+            cache.put(event.request, networkResponse.clone());
+          }
+          return networkResponse;
+        });
+      }).catch(() => {
+        // If the fetch fails (e.g., user is offline), try to serve from the cache.
+        return caches.match(event.request);
+      })
+    );
     return;
   }
 
+  // Use a cache-first strategy for all other (app shell) requests.
+  // This makes the app load quickly.
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-
-        return fetch(event.request).then(
-          response => {
-            // Check if we received a valid response
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // IMPORTANT: Clone the response. A response is a stream
-            // and because we want the browser to consume the response
-            // as well as the cache consuming the response, we need
-            // to clone it so we have two streams.
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          }
-        );
-      })
-    );
+    caches.match(event.request).then(cachedResponse => {
+      return cachedResponse || fetch(event.request);
+    })
+  );
 });
 
 self.addEventListener('activate', event => {

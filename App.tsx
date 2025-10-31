@@ -27,7 +27,7 @@ function App() {
       setError(null);
 
       try {
-        const response = await fetch(`/alerts.json?t=${new Date().getTime()}`);
+        const response = await fetch('./alerts.json');
 
         // A 404 is a valid "no alerts" state if the file doesn't exist.
         if (response.status === 404) {
