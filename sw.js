@@ -1,10 +1,10 @@
 
-const CACHE_NAME = 'hcss-hub-cache-v3';
+const CACHE_NAME = 'hcss-hub-cache-v4';
 const urlsToCache = [
   '/',
   '/index.html',
-  // You would add other important assets here like your main JS/CSS files
-  // For this environment, caching the root and html is a good starting point.
+  '/manifest.json',
+  '/icon.svg'
 ];
 
 self.addEventListener('install', event => {
